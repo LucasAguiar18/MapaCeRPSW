@@ -71,6 +71,27 @@ LOCATIONS = {
 START_NODE = "Entrada principal"
 
 # ==========================================================
+# PLANTAS Y DESTINOS
+# ==========================================================
+
+FLOORS = {
+    "Planta Baja": {
+        "Mediateca",
+        "Bedelía",
+        "DOT",
+        "Baño1",
+        "Baño2",
+        "Lab. Química",
+        "Lab. Biología",
+        "Salón 1",
+        "Salón 2",
+        "Salón 3",
+        "Salón 5",
+    },
+    "Planta Alta": set(),
+}
+
+# ==========================================================
 # CONEXIONES
 # ==========================================================
 
@@ -186,6 +207,8 @@ class CERPSWNavigator(ShowBase):
 
         self.graph = nx.Graph()
         self.start_node = START_NODE
+        self.current_floor = "Planta Baja"
+        self.destination_buttons = []
 
         for name, pos in LOCATIONS.items():
 
@@ -267,72 +290,82 @@ class CERPSWNavigator(ShowBase):
     def setup_ui(self):
 
         self.panel = DirectFrame(
-            frameColor=(0.07, 0.07, 0.1, 0.92),
+            frameColor=(0.05, 0.07, 0.12, 0.95),
             frameSize=(-0.42, 0.42, -1, 1),
             pos=(-1.28, 0, 0)
+        )
+
+        self.destination_frame = DirectFrame(
+            frameColor=(0.10, 0.14, 0.22, 0.94),
+            frameSize=(-0.36, 0.36, -0.92, 0.52),
+            pos=(-1.28, 0, -0.05)
         )
 
         self.title = OnscreenText(
             text="CERPSW NAVIGATOR",
             pos=(-1.12, 0.9),
             scale=0.055,
-            fg=(1, 1, 1, 1)
+            fg=(0.9, 0.95, 1, 1)
         )
 
         self.origin_text = OnscreenText(
             text=f"Origen: {self.start_node}",
-            pos=(-1.1, 0.88),
+            pos=(-1.1, 0.82),
             scale=0.035,
-            fg=(0.8, 0.8, 1, 1)
+            fg=(0.8, 0.9, 1, 1)
+        )
+
+        self.floor_text = OnscreenText(
+            text=f"Planta: {self.current_floor}",
+            pos=(-1.1, 0.76),
+            scale=0.035,
+            fg=(0.7, 0.95, 0.8, 1)
         )
 
         self.destination_text = OnscreenText(
             text="Destino: Ninguno",
-            pos=(-1.1, 0.82),
+            pos=(-1.1, 0.70),
             scale=0.04,
-            fg=(0.5, 0.9, 1, 1)
+            fg=(0.65, 0.85, 1, 1)
         )
 
-        y = 0.68
+        self.floor_hint_text = OnscreenText(
+            text="",
+            pos=(-1.1, 0.62),
+            scale=0.033,
+            fg=(0.9, 0.85, 0.65, 1),
+            mayChange=True
+        )
 
-        for location in LOCATIONS.keys():
+        self.tab_buttons = {}
+        tab_x = -0.9
 
-            if "Pasillo" in location:
-                continue
-            if "P.A" in location:
-                continue
-            if location == "Entrada principal":
-                continue
-
-            DirectButton(
-                text=location,
-                scale=0.045,
-                pos=(-1.1, 0, y),
-
-                frameColor=(0.15, 0.35, 0.85, 1),
-
+        for floor_name in FLOORS.keys():
+            button = DirectButton(
+                text=floor_name,
+                scale=0.04,
+                pos=(tab_x, 0, 0.95),
+                frameColor=(0.15, 0.15, 0.15, 1),
                 text_fg=(1, 1, 1, 1),
-
-                command=self.navigate_to,
-
-                extraArgs=[location]
+                relief=1,
+                command=self.set_floor,
+                extraArgs=[floor_name]
             )
+            self.tab_buttons[floor_name] = button
+            tab_x += 0.48
 
-            y -= 0.085
+        self.button_start_y = 0.56
+        self.update_floor_tabs()
+        self.update_destination_buttons()
 
         # LIMPIAR
 
         DirectButton(
             text="Limpiar ruta",
-
             scale=0.045,
-
             pos=(-1.1, 0, -0.75),
-
             frameColor=(0.85, 0.2, 0.2, 1),
-
             text_fg=(1, 1, 1, 1),
-
             command=self.clear_path
         )
 
@@ -340,16 +373,77 @@ class CERPSWNavigator(ShowBase):
 
         DirectButton(
             #text="Reset cámara",
-
-            scale=0.0001,
-
+            scale=0.000001,
             #pos=(-1.1, 0, -0.87),
-
             #frameColor=(0.2, 0.7, 0.3, 1),
-
-            #
+           # text_fg=(1, 1, 1, 1),
             #command=self.reset_camera
         )
+    # ======================================================
+    # UTILIDADES DE UI
+    # ======================================================
+
+    def set_floor(self, floor_name):
+
+        self.current_floor = floor_name
+        self.floor_text.setText(f"Planta: {floor_name}")
+        self.update_floor_tabs()
+        self.update_destination_buttons()
+
+    def update_floor_tabs(self):
+
+        for floor_name, button in self.tab_buttons.items():
+            if floor_name == self.current_floor:
+                button['frameColor'] = (0.25, 0.55, 0.95, 1)
+                button['text_fg'] = (1, 1, 1, 1)
+            else:
+                button['frameColor'] = (0.12, 0.12, 0.18, 1)
+                button['text_fg'] = (0.8, 0.8, 0.8, 1)
+
+    def update_destination_buttons(self):
+
+        for btn in self.destination_buttons:
+            btn.destroy()
+
+        self.destination_buttons.clear()
+
+        floor_locations = FLOORS.get(self.current_floor, set())
+        y = self.button_start_y
+
+        if not floor_locations:
+            self.floor_hint_text.setText(
+                "No hay ubicaciones disponibles en esta planta aún."
+            )
+            return
+
+        self.floor_hint_text.setText("")
+
+        for location in LOCATIONS.keys():
+            if location == self.start_node:
+                continue
+            if location not in floor_locations:
+                continue
+
+            button = DirectButton(
+                text=location,
+                scale=0.045,
+                pos=(-1.1, 0, y),
+                frameColor=(0.16, 0.42, 0.85, 1),
+                text_fg=(1, 1, 1, 1),
+                relief=1,
+                rolloverSound=None,
+                pressEffect=1,
+                command=self.navigate_to,
+                extraArgs=[location]
+            )
+            self.destination_buttons.append(button)
+            y -= 0.085
+
+        if not self.destination_buttons:
+            self.floor_hint_text.setText(
+                "No hay ubicaciones disponibles en esta planta aún."
+            )
+
     # ======================================================
     # NAVEGAR
     # ======================================================
