@@ -28,35 +28,40 @@ from direct.gui.OnscreenText import OnscreenText
 LOCATIONS = {
 
     # ENTRADA
-    "Entrada principal": (8, 45, 0.2),
+    "Entrada principal": (1.5, 47, 0.2),
+    "P.A3": (3, 47, 0.2),
 
     # PASILLO
-    "Pasillo A": (1.5, 35, 0.2),
-    "Pasillo B": (7, 0, 0.2),
-    "Pasillo C": (11, 0, 0.2),
-    "Pasillo D": (15, 0, 0.2),
-    "Pasillo E": (19, 0, 0.2),
-    "Pasillo F": (15, 40, 0.2),
-    "Pasillo G": (27, 0, 0.2),
+    "Pasillo A": (1.5, 58, 0.2),
+    "Pasillo B": (1.5, 56, 0.2),
+    "Pasillo C": (1.5, 49, 0.2),
+    "P.A1": (-5, 49, 0.2),
+    "P.A2": (-5, 44, 0.2),
+    "Pasillo D": (3,37, 0.2),
+    "Pasillo E": (3, 33, 0.2),
+    "Pasillo F": (3, 25, 0.2),
+    "Pasillo G": (3, 17, 0.2),
+    "Pasillo H": (3, 12, 0.2),
+    "Pasillo I": (3, 2.5, 0.2),
+    "Pasillo J": (3, -3, 0.2),
+    "Pasillo K": (3, -0.5, 0.2),
+    
+    
 
-    # IZQUIERDA
-    "Mediateca": (-4, -4, 0.2),
-    "Bedelía": (2, -5, 0.2),
-    "DOT": (5, -5, 0.2),
+    
+    "Mediateca": (1.5, 65, 0.2),
+    "Bedelía": (-7, 56, 0.2),
+    "DOT": (-7, 44, 0.2),
 
-    # CENTRO
-    "Baño": (0, 35, 0.2),
-    "Lab. Química": (14, -3, 0.2),
-    "Lab. Biología": (18, -3, 0.2),
-
-    # SALONES
-    "Salón 1": (20, -3, 0.2),
-    "Salón 2": (23, -3, 0.2),
-    #-1, 0, 0.2
-    #23, 0, 0.2
-    "Salón 3": (26, -3, 0.2),
-    "Salón 4": (30, -3, 0.2),
-    "Salón 5": (34, -3, 0.2),
+   
+    "Baño1": (0, 37, 0.2),
+    "Baño2": (0, 33, 0.2),
+    "Lab. Química": (0, 25, 0.2),
+    "Lab. Biología": (0, 17, 0.2),
+    "Salón 1": (0, -3, 0.2),
+    "Salón 2": (0, -0.5, 0.2),
+    "Salón 3": (0, 2.5, 0.2),
+    "Salón 5": (0, 12, 0.2),
 }
 
 # ==========================================================
@@ -72,26 +77,34 @@ START_NODE = "Entrada principal"
 EDGES = [
 
     ("Entrada principal", "Pasillo A"),
-    ("Pasillo A", "Pasillo B"),
-    ("Pasillo B", "Pasillo C"),
-    ("Pasillo C", "Pasillo D"),
-    ("Pasillo D", "Pasillo E"),
-    ("Pasillo E", "Pasillo F"),
-    ("Pasillo F", "Pasillo G"),
+    ("Entrada principal", "Pasillo B"),
+    ("Entrada principal", "Pasillo C"),
+    ("Entrada principal", "P.A3"),
+    ("P.A3", "Pasillo D"),
+    ("P.A3", "Pasillo E"),
+    ("P.A3", "Pasillo F"),
+    ("P.A3", "Pasillo G"),
+    ("P.A3", "Pasillo H"),
+    ("P.A3", "Pasillo I"),
+    ("P.A3", "Pasillo J"),
+    ("P.A3", "Pasillo K"),
+    
+    
+    ("Pasillo A", "Mediateca"),
+    ("Pasillo B", "Bedelía"),
+    ("Pasillo C", "P.A1"),
+    ("P.A1", "P.A2"),
+    ("P.A2", "DOT"),
 
-    ("Entrada principal", "Mediateca"),
-    ("Pasillo C", "Bedelía"),
-    ("Pasillo B", "DOT"),
+    ("Pasillo D", "Baño1"),
+    ("Pasillo E", "Baño2"),
+    ("Pasillo F", "Lab. Química"),
+    ("Pasillo G", "Lab. Biología"),
 
-    ("Pasillo A", "Baño"),
-    ("Pasillo D", "Lab. Química"),
-    ("Pasillo E", "Lab. Biología"),
-
-    ("Pasillo E", "Salón 1"),
-    ("Pasillo F", "Salón 2"),
-    ("Pasillo F", "Salón 3"),
-    ("Pasillo G", "Salón 4"),
-    ("Pasillo G", "Salón 5"),
+    ("Pasillo I", "Salón 3"),
+    ("Pasillo K", "Salón 2"),
+    ("Pasillo J", "Salón 1"),
+    ("Pasillo H", "Salón 5"),
 ]
 
 # ==========================================================
@@ -286,7 +299,8 @@ class CERPSWNavigator(ShowBase):
 
             if "Pasillo" in location:
                 continue
-
+            if "P.A" in location:
+                continue
             if location == "Entrada principal":
                 continue
 
